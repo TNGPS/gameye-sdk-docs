@@ -193,7 +193,7 @@ like this:
 async function get_games_and_locations(gameye: GameyeClient) {
 
     console.log("\nGet available games and locations ...");
-    const games_and_locations;
+    let games_and_locations;
     try {
         games_and_locations = await gameye.queryGame();
     } catch (error) {
@@ -201,7 +201,6 @@ async function get_games_and_locations(gameye: GameyeClient) {
         return -1;
     }
     console.log("... done");
-
 
     for (const game in games_and_locations.game) {
         console.log("game : ", game, " available at locations:", games_and_locations.game[game].location);
@@ -322,7 +321,7 @@ https://api.gameye.com/fetch/template/VALID_GAME_KEY
 ```typescript
 async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 
-    const available_templates: any;
+    let available_templates: any;
 
     console.log("\nGet avaiable templates for game", gameKey, " ...");
     try {
@@ -438,7 +437,7 @@ async function start_stop_match(gameye: GameyeClient){
 
     console.log("\nlet's START a match with key", matchKey , " ...");
     try {
-        const match_started = await gameye.commandStartMatch(matchKey, gameKey, locationKeys, templateKey, matchConfig);
+        await gameye.commandStartMatch(matchKey, gameKey, locationKeys, templateKey, matchConfig);
     } catch (error) {
         console.error("Sorry: commandStartMatch call failed: ", error);
         return -1;
@@ -446,7 +445,7 @@ async function start_stop_match(gameye: GameyeClient){
     console.log("...done");
     
     // start handling match updates here ...
-
+   
     console.log("\nlet's STOP the game ...");
     try{
         await gameye.commandStopMatch(matchKey);
@@ -464,7 +463,52 @@ async function start_stop_match(gameye: GameyeClient){
 After you stared a match you can listen to updates from the live match using 
 a view simple `query` calls.
 
+If you have any matches in progress you can fetch the state using
+the  `match` `query`.
+
+### Match data sample (json)
+The match query list all matches indexed by `matchKey` 
+```json
+{ 
+    match: { 
+     '1536150262360': null,
+     '1536150484784': null,
+     '1536150547618': {
+        matchKey: '1536150547618',
+        gameKey: 'csgo',
+        locationKey: 'rotterdam',
+        host: '213.163.71.5',
+        created: 1536150547865,
+        port: { 
+          game: 50716, 
+          gotv: 54478
+        }
+     }
+}
+```
+
+### Query match state / statistics (raw API)
+
+```bash
+curl \
+--header "Authorization: Bearer GAMEYE_API_KEY" \
+https://api.gameye.com/fetch/match/VALID_MATCH_KEY
+```
 
 ### Query match state / statistics (node,js, typescript)
 
+```typescript
+
+async function request_match(gameye: GameyeClient, matchKey: string){
+
+    // get all info about running matches
+    let all_matches: any;
+    try {
+        all_matches = await gameye.queryMatch(); // TODO: suggest to pass matchKey for this query also
+        console.log('  - my match = ', all_matches.match[matchKey]);
+    } catch (error) {
+        console.warn('Problem with queryMatch :', error);
+    }
+}
+```
     
