@@ -16,10 +16,9 @@ How cool is that!
 The Gameye SDK's are the recommended way to use out API's.
 
 SDK are available in several popular languages:
-1. Typescript (nods.js)
+1. Typescript (node.js)
 1. Golang
 1. PHP
-1. Python
 1. raw REST API (curl)
 1. request more languages ....
 
@@ -182,7 +181,7 @@ gameye.queryGame().then(games_and_locations => {
         console.log('location : ', location,  games_and_locations.location[location]);
     }
 }).catch(error=>{
-    console.error("Error connecting to the Gameye games available");
+    console.error("Sorry: queryGame call failed: ", error);
 });
 
 ```
@@ -194,8 +193,15 @@ like this:
 async function get_games_and_locations(gameye: GameyeClient) {
 
     console.log("\nGet available games and locations ...");
-    const games_and_locations = await gameye.queryGame();
+    const games_and_locations;
+    try {
+        games_and_locations = await gameye.queryGame();
+    } catch (error) {
+        console.error("Sorry: queryGame call failed: ", error);
+        return -1;
+    }
     console.log("... done");
+
 
     for (const game in games_and_locations.game) {
         console.log("game : ", game, " available at locations:", games_and_locations.game[game].location);
@@ -316,10 +322,17 @@ https://api.gameye.com/fetch/template/VALID_GAME_KEY
 ```typescript
 async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 
-    console.log("\nGet avaiable templates for game", gameKey, " ...");
-    const available_templates = await gameye.queryTemplate(gameKey);
-    console.log("...done");
+    const available_templates: any;
 
+    console.log("\nGet avaiable templates for game", gameKey, " ...");
+    try {
+        available_templates = await gameye.queryTemplate(gameKey);
+    } catch (error) {
+        console.error("Sorry: queryTemplate call failed: ", error);
+        return -1;   
+    }
+    console.log("...done");
+    
     console.log('\nknown templates for game: ', gameKey);
 
     for (const template in available_templates.template) {
@@ -393,9 +406,10 @@ https://api.gameye.com/action/stop-match
 ```
 
 The result wil be a HTTP status code:
-- a `204` 'CREATED' in case of a successful started match
+- a `204` 'NO CONTENT' in case of a successful started match
 - a `200` 'SUCCESS' in case of a successful stopped match
-- a `403` 'NOT ALLWOED' in case of an invalid `GAMEYE_API_KEY` 
+- a `401` 'AUTHORISATION NEEDED' in case of a missing `GAMEYE_API_KEY` 
+- a `403` 'NOT ALLOWED' in case of an invalid `GAMEYE_API_KEY` 
 - a `404` 'NOT FOUND' in case of a non existing game (template)
 - a `500` in case of any mistakes in the posted payload
  
@@ -423,16 +437,34 @@ async function start_stop_match(gameye: GameyeClient){
     const matchKey: string = '' + new Date().getTime(); // we use a timestamp as a unique gameKey
 
     console.log("\nlet's START a match with key", matchKey , " ...");
-
-    await gameye.commandStartMatch(matchKey, gameKey, locationKeys, templateKey, matchConfig);
-
+    try {
+        const match_started = await gameye.commandStartMatch(matchKey, gameKey, locationKeys, templateKey, matchConfig);
+    } catch (error) {
+        console.error("Sorry: commandStartMatch call failed: ", error);
+        return -1;
+    }
     console.log("...done");
+    
+    // start handling match updates here ...
 
     console.log("\nlet's STOP the game ...");
-
-    await gameye.commandStopMatch(matchKey);
-
+    try{
+        await gameye.commandStopMatch(matchKey);
+    } catch (error) {
+        console.error("Sorry: commandStartMatch call failed: ", error);
+        return -1;        
+    }
     console.log("...done");
+
 }
 ```
 
+## Listen to real time updates of a running match
+
+After you stared a match you can listen to updates from the live match using 
+a view simple `query` calls.
+
+
+### Query match state / statistics (node,js, typescript)
+
+    
