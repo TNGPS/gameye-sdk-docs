@@ -482,14 +482,14 @@ The match query list all matches indexed by `matchKey`
      "1536150262360": null,
      "1536150484784": null,
      "1536150547618": {
-        matchKey: "1536150547618",
-        gameKey: "csgo",
-        locationKey: "rotterdam",
-        host: "213.163.71.5",
-        created: 1536150547865,
-        port: { 
-          game: 50716, 
-          gotv: 54478
+        "matchKey": "1536150547618",
+        "gameKey": "csgo",
+        "locationKey": "rotterdam",
+        "host": "213.163.71.5",
+        "created": 1536150547865,
+        "port": { 
+          "game": 50716, 
+          "gotv" 54478
         }
      }
 }
