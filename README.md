@@ -72,7 +72,14 @@ authorization header.
 ## Instantiate a Gameye Client (typescript)
 
 ```typescript
-import { GameyeClient, GameyeClientConfig } from '@gameye/sdk'
+import {
+    GameQueryState,
+    GameyeClient,
+    GameyeClientConfig,
+    MatchQueryState, 
+    StatisticQueryState,
+    TemplateQueryState
+} from '@gameye/sdk'
 
 const api_config = <GameyeClientConfig>({endpoint:'https://api.gameye.com', token: 'GAMEYE_API_KEY'});
 
@@ -467,6 +474,7 @@ If you have any matches in progress you can fetch the state using
 the  `match` `query`.
 
 ### Match data sample (json)
+
 The match query list all matches indexed by `matchKey` 
 ```json
 { 
@@ -487,15 +495,15 @@ The match query list all matches indexed by `matchKey`
 }
 ```
 
-### Query match state / statistics (raw API)
+### Query match (raw API)
 
 ```bash
 curl \
 --header "Authorization: Bearer GAMEYE_API_KEY" \
-https://api.gameye.com/fetch/match/VALID_MATCH_KEY
+https://api.gameye.com/fetch/match
 ```
 
-### Query match state / statistics (node,js, typescript)
+### Query match state (node.js, typescript)
 
 ```typescript
 
@@ -511,4 +519,150 @@ async function request_match(gameye: GameyeClient, matchKey: string){
     }
 }
 ```
+
+### Query match state  (PHP)
+
+### Query match state  (Golang)
+
+
+## Query Statistics 
+After you stared a match you can listen to updates to the match statistics
+similar as the match state itself.
+
+If you have any matches in progress you can fetch the state using
+the  `statistic` `query` given a valid `matchKey`.
+
+
+### statistic data structure (json)
+
+The `statistic` `query` returns a json object with one attribute
+`statistic` where we find the attributes:
+1. `start`(number): a timestamp when the match was started
+1. `stop` (number): a timestamp when the match was stopped of `null` id the match is still in progress
+1. `startedRounds` (number): number of match rounds started
+1. `finishedRounds` (number): number of match rounds finished
+1. `player` (object): information about all players indexed by `playerKey`
+1. `team` (object): information about all teams indexed by `teamKey`
+
+The `player` information (model) has the following attributes:
+1. `connected` (boolean): , the connected state of the player
+1. `playerKey` (string):   uniq key of a player
+1. `uid` (string):  user id of the player (??)
+1. `name` (string) nickname of the plauer "Xander",
+1. `statistic` (object): score statistics (numbers) of the player 
+    indexed by `scoreKey` (e.g. `assist`, `death`, `kill`) actual statistic
+    keys depend on game and gamemode
+
+The `team` information (model) has the following attributes:
+1. `teamKey` (string): key of the team
+1. `name` (string):  name of the team
+1. `statistic` (object): team scores (numbers) indexed by `scoreKey`
+1. `player` (object): team members (booleans) indexed by `playerKey`
+
+A sample looks like this:
+
+```json
+{
+	"statistic": {
+		"start": 1536333217000,
+		"stop": null,
+		"startedRounds": 1,
+		"finishedRounds": 0,
+		"player": {
+			"3": {
+				"connected": true,
+				"playerKey": "3",
+				"uid": "BOT",
+				"name": "Xander",
+				"statistic": {
+					"assist": 0,
+					"death": 1,
+					"kill": 1
+				}
+			},
+			"4": {
+				"connected": true,
+				"playerKey": "4",
+				"uid": "BOT",
+				"name": "Hank",
+				"statistic": {
+					"assist": 0,
+					"death": 1,
+					"kill": 0
+				}
+			}
+		},
+		"team": {
+			"1": {
+				"teamKey": "1",
+				"name": "TeamA",
+				"statistic": {
+					"score": 0
+				},
+				"player": {
+					"4": true,
+					"5": true,
+					"8": true
+				}
+			},
+			"2": {
+				"teamKey": "2",
+				"name": "TeamB",
+				"statistic": {
+					"score": 0
+				},
+				"player": {
+					"3": true,
+					"6": true,
+					"7": true
+				}
+			}
+		}
+	}
+}
+```
     
+### Query Statistic (raw API)
+
+```bash
+curl \
+--header "Authorization: Bearer GAMEYE_API_KEY" \
+https://api.gameye.com/fetch/statistic/VALID_MATCH_KEY
+```
+
+### Query statistic  (node.js, typescript)
+
+```typescript
+
+async function observe_match(gameye: GameyeClient, matchKey: string){
+
+    // observe the match in real time
+
+    let match: StatisticQueryState;
+    let match_is_running = !!all_matches.match[matchKey];
+
+    while(match_is_running){
+        try{
+            match = await gameye.queryStatistic(matchKey);
+            match_is_running = !match.statistic.stop;
+            
+            console.log('  - start = ', match.statistic.start);
+            console.log('  - stop = ', match.statistic.stop);
+            
+            console.log('  - startedRounds = ', match.statistic.startedRounds);
+            console.log('  - finishedRounds = ', match.statistic.finishedRounds:);
+            
+            for( const team in match.statistic.team ){
+                console.log('    - team ', team, " --> ", match.statistic.team[team]);
+            }
+            for( const player in match.statistic.player ){
+                console.log('   - player ', player, " --> ", match.statistic.player[player]);
+            }
+        } catch (error) {
+            console.warn('Problem with queryStatistic (aborting) :', error);
+            // match my be stopped ?
+            match_is_running = false;
+        }
+    }
+}
+```
