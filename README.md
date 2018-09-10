@@ -200,7 +200,7 @@ like this:
 async function get_games_and_locations(gameye: GameyeClient) {
 
     console.log("\nGet available games and locations ...");
-    let games_and_locations;
+    let games_and_locations: GameQueryState;
     try {
         games_and_locations = await gameye.queryGame();
     } catch (error) {
@@ -328,7 +328,7 @@ https://api.gameye.com/fetch/template/VALID_GAME_KEY
 ```typescript
 async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 
-    let available_templates: any;
+    let available_templates: TemplateQueryState;
 
     console.log("\nGet avaiable templates for game", gameKey, " ...");
     try {
@@ -510,7 +510,7 @@ https://api.gameye.com/fetch/match
 async function request_match(gameye: GameyeClient, matchKey: string){
 
     // get all info about running matches
-    let all_matches: any;
+    let all_matches: MatchQueryState;
     try {
         all_matches = await gameye.queryMatch(); // TODO: suggest to pass matchKey for this query also
         console.log('  - my match = ', all_matches.match[matchKey]);
