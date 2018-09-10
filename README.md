@@ -489,7 +489,7 @@ The match query list all matches indexed by `matchKey`
         "created": 1536150547865,
         "port": { 
           "game": 50716, 
-          "gotv" 54478
+          "gotv": 54478
         }
      }
 }
