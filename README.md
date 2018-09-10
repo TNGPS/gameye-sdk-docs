@@ -79,9 +79,9 @@ import {
     MatchQueryState, 
     StatisticQueryState,
     TemplateQueryState
-} from '@gameye/sdk'
+} from "@gameye/sdk"
 
-const api_config = <GameyeClientConfig>({endpoint:'https://api.gameye.com', token: 'GAMEYE_API_KEY'});
+const api_config = <GameyeClientConfig>({endpoint:"https://api.gameye.com", token: "GAMEYE_API_KEY"});
 
 const gameye = new GameyeClient(api_config);
 
@@ -182,10 +182,10 @@ gameye.queryGame().then(games_and_locations => {
     // extract game and location data
     console.debug("Games and locations available:");
     for(const game in games_and_locations.game){
-        console.log('game : ', game, ' available at locations:', games_and_locations.game[game].location);
+        console.log("game : ", game, " available at locations:", games_and_locations.game[game].location);
     }
     for(const location in games_and_locations.location){
-        console.log('location : ', location,  games_and_locations.location[location]);
+        console.log("location : ", location,  games_and_locations.location[location]);
     }
 }).catch(error=>{
     console.error("Sorry: queryGame call failed: ", error);
@@ -339,10 +339,10 @@ async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
     }
     console.log("...done");
     
-    console.log('\nknown templates for game: ', gameKey);
+    console.log("\nknown templates for game: ", gameKey);
 
     for (const template in available_templates.template) {
-        console.log('known template for game: ', gameKey,  ' --> ', template, ' --> ',  available_templates.template[template]);
+        console.log("known template for game: ", gameKey,  " --> ", template, " --> ",  available_templates.template[template]);
     }
 }
 ```
@@ -360,7 +360,7 @@ In the sample code we a timestamp with suffient large resolution as a match key,
 but any unique (string) ID will do.
 
 To `start` a match you need the following input:
-1. a `gameKey` to specify the game (e.g. 'csgo')
+1. a `gameKey` to specify the game (e.g. "csgo")
 1. a list of `locationKeys` where you want your servers to be deployed
 1. a `templateKey` to select a known game template (see above)
 1. a unique `matchkey` for reference of the match
@@ -440,7 +440,7 @@ async function start_stop_match(gameye: GameyeClient){
      "teamNameOne": "TeamA",
      "teamNameTwo": "TeamB"
    };
-    const matchKey: string = '' + new Date().getTime(); // we use a timestamp as a unique gameKey
+    const matchKey: string = "" + new Date().getTime(); // we use a timestamp as a unique gameKey
 
     console.log("\nlet's START a match with key", matchKey , " ...");
     try {
@@ -478,14 +478,14 @@ the  `match` `query`.
 The match query list all matches indexed by `matchKey` 
 ```json
 { 
-    match: { 
-     '1536150262360': null,
-     '1536150484784': null,
-     '1536150547618': {
-        matchKey: '1536150547618',
-        gameKey: 'csgo',
-        locationKey: 'rotterdam',
-        host: '213.163.71.5',
+    "match": { 
+     "1536150262360": null,
+     "1536150484784": null,
+     "1536150547618": {
+        matchKey: "1536150547618",
+        gameKey: "csgo",
+        locationKey: "rotterdam",
+        host: "213.163.71.5",
         created: 1536150547865,
         port: { 
           game: 50716, 
@@ -513,9 +513,9 @@ async function request_match(gameye: GameyeClient, matchKey: string){
     let all_matches: MatchQueryState;
     try {
         all_matches = await gameye.queryMatch(); // TODO: suggest to pass matchKey for this query also
-        console.log('  - my match = ', all_matches.match[matchKey]);
+        console.log("  - my match = ", all_matches.match[matchKey]);
     } catch (error) {
-        console.warn('Problem with queryMatch :', error);
+        console.warn("Problem with queryMatch :", error);
     }
 }
 ```
@@ -646,20 +646,20 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
             match = await gameye.queryStatistic(matchKey);
             match_is_running = !match.statistic.stop;
             
-            console.log('  - start = ', match.statistic.start);
-            console.log('  - stop = ', match.statistic.stop);
+            console.log("  - start = ", match.statistic.start);
+            console.log("  - stop = ", match.statistic.stop);
             
-            console.log('  - startedRounds = ', match.statistic.startedRounds);
-            console.log('  - finishedRounds = ', match.statistic.finishedRounds:);
+            console.log("  - startedRounds = ", match.statistic.startedRounds);
+            console.log("  - finishedRounds = ", match.statistic.finishedRounds:);
             
             for( const team in match.statistic.team ){
-                console.log('    - team ', team, " --> ", match.statistic.team[team]);
+                console.log("    - team ", team, " --> ", match.statistic.team[team]);
             }
             for( const player in match.statistic.player ){
-                console.log('   - player ', player, " --> ", match.statistic.player[player]);
+                console.log("   - player ", player, " --> ", match.statistic.player[player]);
             }
         } catch (error) {
-            console.warn('Problem with queryStatistic (aborting) :', error);
+            console.warn("Problem with queryStatistic (aborting) :", error);
             // match my be stopped ?
             match_is_running = false;
         }
