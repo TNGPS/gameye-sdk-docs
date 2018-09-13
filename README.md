@@ -77,6 +77,7 @@ import {
     GameyeClient,
     GameyeClientConfig,
     MatchQueryState, 
+    QuerySubscription,
     StatisticQueryState,
     TemplateQueryState
 } from "@gameye/sdk"
@@ -84,7 +85,6 @@ import {
 const api_config = <GameyeClientConfig>({endpoint:"https://api.gameye.com", token: "GAMEYE_API_KEY"});
 
 const gameye = new GameyeClient(api_config);
-
 ```
 
 ## Instantiate a Gameye Client (PHP)
@@ -320,7 +320,7 @@ A sample looks like this:
 curl \
 --header "Content-Type: application/json" \
 --header "Authorization: Bearer GAMEYE_API_KEY" \
-https://api.gameye.com/fetch/template/VALID_GAME_KEY
+https://api.gameye.com/fetch/template?gameKey=VALID_GAME_KEY
 ```
 
 ### Query Template (node, typescript)
@@ -525,17 +525,26 @@ async function request_match(gameye: GameyeClient, matchKey: string){
 ### Query match state  (Golang)
 
 
-## Query Statistics 
+## Query  / Subscribe Statistics 
 After you stared a match you can listen to updates to the match statistics
 similar as the match state itself.
 
+If you user one of our SDK's you can listen to updates of the 
+statistics in __real time__ using a `subscription`. This is the
+preferred and most convenient way to observe a match.
+
+If you want an `one time` status update of a match 
+(e.g. after the match has ended) or if you cannot use 
+one of de SDK's, you may poll the statistics using (raw API) `Query` 
+calls.
+
 If you have any matches in progress you can fetch the state using
-the  `statistic` `query` given a valid `matchKey`.
+the  `statistic` `query` or `subscribe` given a valid `matchKey`.
 
 
 ### statistic data structure (json)
 
-The `statistic` `query` returns a json object with one attribute
+The `statistic` `query` / `subscribe` returns a json object with one attribute
 `statistic` where we find the attributes:
 1. `start`(number): a timestamp when the match was started
 1. `stop` (number): a timestamp when the match was stopped of `null` id the match is still in progress
@@ -624,13 +633,46 @@ A sample looks like this:
     
 ### Query Statistic (raw API)
 
+Just `GET` the statistic of any running match using the `matchKey` query parameter:
+
 ```bash
 curl \
 --header "Authorization: Bearer GAMEYE_API_KEY" \
-https://api.gameye.com/fetch/statistic/VALID_MATCH_KEY
+https://api.gameye.com/fetch/statistic?matchKey=VALID_MATCH_KEY
 ```
 
 ### Query statistic  (node.js, typescript)
+
+For a one time requetst for the match statistics we may use a `queryStatistic` call:
+
+```typescript
+async function get_match_stats(gameye: GameyeClient, matchKey: string){
+
+    // one time status request for a match
+
+    let match: StatisticQueryState;
+
+    // use QueryStatistic to get the final scores of the match
+    try{
+        match = await gameye.queryStatistic(matchKey);
+        console.log("  - stats = ", match.statistic);
+        for( const team in match.statistic.team ){
+            console.log("     - team ", team, " --> ", match.statistic.team[team]);
+        }
+        for( const player in match.statistic.player ){
+            console.log("     - player ", player, " --> ", match.statistic.player[player]);
+        }
+    } catch (error) {
+        console.warn("Problem with queryStatistic :", error);
+    }
+}
+```
+
+### Subscribe statistic  (node.js, typescript)
+
+To observer the changes in the match statistics we can use `subscribeStatistic`
+this will result in events for each new match state. This is much more friendly than
+hard polling using barebones `queryStatistic` calls.
 
 ```typescript
 
@@ -638,25 +680,34 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
 
     // observe the match in real time
 
+    let match_observer: any;
     let match: StatisticQueryState;
-    let match_is_running = !!all_matches.match[matchKey];
-
+    let match_is_running = true;
+    
+    try {
+        match_observer = await gameye.subscribeStatistic(matchKey);
+    } catch (error) {
+        console.warn("Problem with subscribeStatistic (aborting) :", error);
+        match_is_running = false; // match my be stopped ?
+    }
+    
     while(match_is_running){
         try{
-            match = await gameye.queryStatistic(matchKey);
-            match_is_running = !match.statistic.stop;
+            // wait for new (changed) state
+            match = await match_observer.nextState(); // will return a NULL of the observer is destroyed
+            match_is_running = !match || !match.statistic.stop;
             
             console.log("  - start = ", match.statistic.start);
             console.log("  - stop = ", match.statistic.stop);
             
             console.log("  - startedRounds = ", match.statistic.startedRounds);
-            console.log("  - finishedRounds = ", match.statistic.finishedRounds:);
+            console.log("  - finishedRounds = ", match.statistic.finishedRounds);
             
             for( const team in match.statistic.team ){
-                console.log("    - team ", team, " --> ", match.statistic.team[team]);
+                console.log("     - team ", team, " --> ", match.statistic.team[team]);
             }
             for( const player in match.statistic.player ){
-                console.log("   - player ", player, " --> ", match.statistic.player[player]);
+                console.log("     - player ", player, " --> ", match.statistic.player[player]);
             }
         } catch (error) {
             console.warn("Problem with queryStatistic (aborting) :", error);
@@ -664,5 +715,24 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
             match_is_running = false;
         }
     }
+
+    // clean up after observing is done
+    match_observer.destroy();
+
+    // use QueryStatistic to get the final scores of the match
+    try{
+        match = await gameye.queryStatistic(matchKey);
+        console.log("  - stats = ", match.statistic);
+        for( const team in match.statistic.team ){
+            console.log("     - team ", team, " --> ", match.statistic.team[team]);
+        }
+        for( const player in match.statistic.player ){
+            console.log("     - player ", player, " --> ", match.statistic.player[player]);
+        }
+    } catch (error) {
+        console.warn("Problem with queryStatistic :", error);
+    }
 }
 ```
+
+
