@@ -681,7 +681,7 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
     // observe the match in real time
 
     let match_observer: any;
-    let match: StatisticQueryState;
+    let match: false | StatisticQueryState;
     let match_is_running = true;
     
     try {
@@ -694,9 +694,11 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
     while(match_is_running){
         try{
             // wait for new (changed) state
-            match = await match_observer.nextState(); // will return a NULL of the observer is destroyed
-            match_is_running = !match || !match.statistic.stop;
+            match = await match_observer.nextState(); // will return a false of the observer is destroyed
+            if(!match) break;
             
+            match_is_running = !match.statistic.stop;
+                        
             console.log("  - start = ", match.statistic.start);
             console.log("  - stop = ", match.statistic.stop);
             
