@@ -77,6 +77,7 @@ import {
     GameyeClient,
     GameyeClientConfig,
     MatchQueryState, 
+    QuerySubscription,
     StatisticQueryState,
     TemplateQueryState
 } from "@gameye/sdk"
@@ -84,7 +85,6 @@ import {
 const api_config = <GameyeClientConfig>({endpoint:"https://api.gameye.com", token: "GAMEYE_API_KEY"});
 
 const gameye = new GameyeClient(api_config);
-
 ```
 
 ## Instantiate a Gameye Client (PHP)
@@ -219,6 +219,41 @@ async function get_games_and_locations(gameye: GameyeClient) {
 }
 ```
 
+### using the location selector
+
+The gameye SDK provide you with some predefined selector functions that can make it easier
+to traverse the data structure used in de API. Your code will be more robust against future
+changes in the API's datastructures, so we encourage you to use them.
+
+The snippet above can be rewritten using the `selectLocationListForGame` that returns a list of
+`LocationItem`s: 
+
+```typescript
+// import location related selector
+
+import { LocationItem, selectLocationListForGame } from "@gameye/sdk";
+
+async function get_games_and_locations(gameye: GameyeClient) {
+
+    console.log("\nGet available games and locations ...");
+    let games_and_locations: GameQueryState;
+    try {
+        games_and_locations = await gameye.queryGame();
+    } catch (error) {
+        console.error("Sorry: queryGame call failed: ", error);
+        return -1;
+    }
+    console.log("... done");
+    
+    for (const game in games_and_locations.game) {
+        const available_locations: LocationItem[] = selectLocationListForGame(games_and_locations, game);
+        for (const locItem of available_locations) {
+            console.log("game : ", game, " available at location:", locItem.locationKey );
+        }
+    }
+}
+```
+
 ###  Query Game (Golang)
 
 TODO
@@ -320,7 +355,7 @@ A sample looks like this:
 curl \
 --header "Content-Type: application/json" \
 --header "Authorization: Bearer GAMEYE_API_KEY" \
-https://api.gameye.com/fetch/template/VALID_GAME_KEY
+https://api.gameye.com/fetch/template?gameKey=VALID_GAME_KEY
 ```
 
 ### Query Template (node, typescript)
@@ -347,6 +382,56 @@ async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 }
 ```
 
+### using template selectors
+
+The gameye SDK provides two convient selectors for templates too, we encourage you to use them.
+
+The snippet above can be rewritten using the `selectTemplateList` and `selectTemplateItem`  
+selectors like this:
+
+
+```typescript
+// import the template selectors and related types
+import { TemplateItem, selectTemplateItem, selectTemplateList } from "@gameye/sdk"
+
+async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
+
+    let available_templates: TemplateQueryState;
+
+    console.log("\nGet avaiable templates for game", gameKey, " ...");
+    try {
+        available_templates = await gameye.queryTemplate(gameKey);
+    } catch (error) {
+        console.error("Sorry: queryTemplate call failed: ", error);
+        return -1;
+    }
+    console.log("...done");
+
+    console.log("\nknown templates for game: ", gameKey);
+
+    const template_list: TemplateItem[] = selectTemplateList(available_templates);
+    for (const template of template_list) {
+        console.log("  --> ", template.templateKey);
+    }
+    
+    // if the gameKey is known use the selectTemplateItem
+    
+    const templateKey: string = 'bots';
+    const selected_template: TemplateItem = selectTemplateItem(available_templates, templateKey);
+    if(!selected_template){
+        // selected_template will ne null in case it is not found
+        console.error("Sorry, template", templateKey, "is not available for game:", gameKey," aborting...");
+        return -1;
+    }
+
+    // now it is easy to list all arguments of the template
+    
+    console.log("\nallowed arguments for ", gameKey, " --> ", templateKey);
+    for(const arg of selected_template.arg){
+        console.log(" --> ", arg );
+    }
+}
+```
 
 
 ## Start a match
@@ -520,22 +605,66 @@ async function request_match(gameye: GameyeClient, matchKey: string){
 }
 ```
 
+### using match selectors
+
+You are encouraged to use: 
+- `selectMatchList` to get a list of all active matches (may be empty list `[]`)
+- `selectMatchListForGame` to get a list of all active matches for a given `gameKey` (may be empty empty list `[]`)
+- `selectMatchItem` to get the active match item for a given `matchKey` (may be empty `null`)
+
+The above code can be rewritten using selectors like this:
+
+```typescript
+
+import { MatchItem, selectMatchItem, selectMatchList, selectMatchListForGame } from "@gameye/sdk";
+
+async function request_match(gameye: GameyeClient, gameKey: string, matchKey: string){
+
+    console.log("\nlet's request a list of all running matches ...");
+    let match_query_state: MatchQueryState;
+    try {
+        match_query_state = await gameye.queryMatch(); // TODO: suggest to pass matchKey for this query also
+    } catch (error) {
+        console.warn("Problem with queryMatch :", error);
+    }
+    console.log("...done");
+
+    const all_matches: MatchItem[] = selectMatchList(match_query_state);
+    console.log(all_matches);
+
+    const my_matches:  MatchItem[] = selectMatchListForGame(match_query_state, gameKey);
+    console.log(my_matches);
+
+    const my_match: MatchItem = selectMatchItem(match_query_state, matchKey);
+    console.log(my_match);
+}
+```
+
 ### Query match state  (PHP)
 
 ### Query match state  (Golang)
 
 
-## Query Statistics 
+## Query  / Subscribe Statistics 
 After you stared a match you can listen to updates to the match statistics
 similar as the match state itself.
 
+If you user one of our SDK's you can listen to updates of the 
+statistics in __real time__ using a `subscription`. This is the
+preferred and most convenient way to observe a match.
+
+If you want an `one time` status update of a match 
+(e.g. after the match has ended) or if you cannot use 
+one of de SDK's, you may poll the statistics using (raw API) `Query` 
+calls.
+
 If you have any matches in progress you can fetch the state using
-the  `statistic` `query` given a valid `matchKey`.
+the  `statistic` `query` or `subscribe` given a valid `matchKey`.
 
 
 ### statistic data structure (json)
 
-The `statistic` `query` returns a json object with one attribute
+The `statistic` `query` / `subscribe` returns a json object with one attribute
 `statistic` where we find the attributes:
 1. `start`(number): a timestamp when the match was started
 1. `stop` (number): a timestamp when the match was stopped of `null` id the match is still in progress
@@ -624,13 +753,52 @@ A sample looks like this:
     
 ### Query Statistic (raw API)
 
+Just `GET` the statistic of any running match using the `matchKey` query parameter:
+
 ```bash
 curl \
 --header "Authorization: Bearer GAMEYE_API_KEY" \
-https://api.gameye.com/fetch/statistic/VALID_MATCH_KEY
+https://api.gameye.com/fetch/statistic?matchKey=VALID_MATCH_KEY
 ```
 
 ### Query statistic  (node.js, typescript)
+
+For a one time requetst for the match statistics we may use a `queryStatistic` call:
+
+```typescript
+async function get_match_stats(gameye: GameyeClient, matchKey: string){
+
+    // one time status request for a match
+
+    let match: StatisticQueryState;
+
+    // use QueryStatistic to get the final scores of the match
+    try{
+        match = await gameye.queryStatistic(matchKey);
+        console.log("  - stats = ", match.statistic);
+        for( const team in match.statistic.team ){
+            console.log("     - team ", team, " --> ", match.statistic.team[team]);
+        }
+        for( const player in match.statistic.player ){
+            console.log("     - player ", player, " --> ", match.statistic.player[player]);
+        }
+    } catch (error) {
+        console.warn("Problem with queryStatistic :", error);
+    }
+}
+```
+
+```typescript
+// import selectord for  players and Teams
+import { PlayerItem, selectPlayerItem, selectPlayerList, selectPlayerListForTeam } from "@gameye/sdk";
+import { TeamItem, selectTeamItem, selectTeamList } from "@gameye/sdk";
+
+```
+### Subscribe statistic  (node.js, typescript)
+
+To observer the changes in the match statistics we can use `subscribeStatistic`
+this will result in events for each new match state. This is much more friendly than
+hard polling using barebones `queryStatistic` calls.
 
 ```typescript
 
@@ -638,25 +806,36 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
 
     // observe the match in real time
 
-    let match: StatisticQueryState;
-    let match_is_running = !!all_matches.match[matchKey];
-
+    let match_observer: any;
+    let match: false | StatisticQueryState;
+    let match_is_running = true;
+    
+    try {
+        match_observer = await gameye.subscribeStatistic(matchKey);
+    } catch (error) {
+        console.warn("Problem with subscribeStatistic (aborting) :", error);
+        match_is_running = false; // match my be stopped ?
+    }
+    
     while(match_is_running){
         try{
-            match = await gameye.queryStatistic(matchKey);
-            match_is_running = !match.statistic.stop;
+            // wait for new (changed) state
+            match = await match_observer.nextState(); // will return a false of the observer is destroyed
+            if(!match) break;
             
+            match_is_running = !match.statistic.stop;
+                        
             console.log("  - start = ", match.statistic.start);
             console.log("  - stop = ", match.statistic.stop);
             
             console.log("  - startedRounds = ", match.statistic.startedRounds);
-            console.log("  - finishedRounds = ", match.statistic.finishedRounds:);
+            console.log("  - finishedRounds = ", match.statistic.finishedRounds);
             
             for( const team in match.statistic.team ){
-                console.log("    - team ", team, " --> ", match.statistic.team[team]);
+                console.log("     - team ", team, " --> ", match.statistic.team[team]);
             }
             for( const player in match.statistic.player ){
-                console.log("   - player ", player, " --> ", match.statistic.player[player]);
+                console.log("     - player ", player, " --> ", match.statistic.player[player]);
             }
         } catch (error) {
             console.warn("Problem with queryStatistic (aborting) :", error);
@@ -664,5 +843,91 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
             match_is_running = false;
         }
     }
+
+    // clean up after observing is done
+    match_observer.destroy();
+
+    // use QueryStatistic to get the final scores of the match
+    try{
+        match = await gameye.queryStatistic(matchKey);
+        console.log("  - stats = ", match.statistic);
+        for( const team in match.statistic.team ){
+            console.log("     - team ", team, " --> ", match.statistic.team[team]);
+        }
+        for( const player in match.statistic.player ){
+            console.log("     - player ", player, " --> ", match.statistic.player[player]);
+        }
+    } catch (error) {
+        console.warn("Problem with queryStatistic :", error);
+    }
+}
+```
+
+### using team and player selectors
+
+we can rewrite this using the provided selectors:
+- use `selectTeamList` to get a list of `TeamItem`s
+- use `selectTeam` to get a single `TeamItem` by `teamKey`
+- use `selectPlayerList` to get a list of `PlayerItem`s
+- use `selectPlayerItem` to get a single `PlayerItem` by `playerKey`
+- use `selectPlayerListForTeam` to get a list of `PlayerItem`s for given `teamKey`
+
+```typescript
+
+// import selectors and types for players and teams
+import { selectPlayerItem, selectPlayerItem, selectPlayerList, selectPlayerListForTeam } from "@gameye/sdk";
+import { TeamItem, selectTeamItem, selectTeamList } from "@gameye/sdk";
+
+async function observe_match(gameye: GameyeClient, matchKey: string){
+
+    // observe the match in real time
+
+    let match_observer: any;
+    let match: false | StatisticQueryState;
+    let match_is_running = true;
+    let match_state: StatisticQueryState;
+
+    try {
+        match_observer = await gameye.subscribeStatistic(matchKey);
+    } catch (error) {
+        console.warn("Problem with subscribeStatistic (aborting) :", error);
+        match_is_running = false; // match my be stopped ?
+    }
+    
+    while(match_is_running){
+        try{
+            // wait for new (changed) state
+            match = await match_observer.nextState(); // will return a false of the observer is destroyed
+            if(!match) break;
+            
+            match_state = <StatisticQueryState>match_state_or_false;
+
+            match_is_running = !match.statistic.stop;
+            
+            // extract player stats
+            let player: PlayerItem;
+            const player_list: PlayerItem[] = selectPlayerList(match_state);
+
+            for( player of player_list){
+                console.log("     - player ", player.playerKey , " --> ", player);
+            }
+
+            // extract team stats
+            let team: TeamItem;
+            const team_list: TeamItem[] = selectTeamList(match_state);
+
+            for( team of team_list ){
+                console.log("     - team ", team.teamKey , " --> ", team);
+            }
+
+        } catch (error) {
+            console.warn("Problem with queryStatistic (aborting) :", error);
+            // match my be stopped ?
+            match_is_running = false;
+        }
+    }
+
+    // clean up after observing is done
+    match_observer.destroy();
 }
 ```
