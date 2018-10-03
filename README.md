@@ -524,7 +524,7 @@ import (
 
 func main() {
 
-    api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "T2No0tYJ9vRFgcNaOdFI"}
+    api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "GAMEYE_API_KEY"}
     gameye := clients.NewGameyeClient(api_config)
 
     gameKey := "csgo"
@@ -772,10 +772,14 @@ async function request_match(gameye: GameyeClient, gameKey: string, matchKey: st
 
 ### Query match state  (PHP)
 
-### Query match state  (Golang)
+
+
+### Query match state  (Go)
+
 
 
 ## Query  / Subscribe Statistics 
+
 After you stared a match you can listen to updates to the match statistics
 similar as the match state itself.
 
