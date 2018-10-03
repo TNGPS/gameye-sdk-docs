@@ -292,41 +292,41 @@ import (
 
 func main() {
     // init the client
-	api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com"} // not token needed
-	gameye := clients.NewGameyeClient(api_config)
+    api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com"} // no token needed
+    gameye := clients.NewGameyeClient(api_config)
 
-	fmt.Printf("fetch game info from Gameye client\n")
+    fmt.Printf("fetch game info from Gameye client\n")
 
     var err error
     var games_and_locations *models.GameQueryState
 
-	games_and_locations, err = gameye.QueryGame()
-	if err != nil {
-	    fmt.Printf("\nSorry: queryGame call failed:  %s\n", err)
-	    return
-	}
+    games_and_locations, err = gameye.QueryGame()
+    if err != nil {
+        fmt.Printf("\nSorry: queryGame call failed:  %s\n", err)
+        return
+    }
 
-	fmt.Printf("\nWe have %d locations\n", len(games_and_locations.Location))
+    fmt.Printf("\nWe have %d locations\n", len(games_and_locations.Location))
 
-	for i, loc_item := range games_and_locations.Location {
-	    fmt.Printf("  - location %s --> %#v\n", i, loc_item)
-	}
+    for i, loc_item := range games_and_locations.Location {
+        fmt.Printf("  - location %s --> %#v\n", i, loc_item)
+    }
 
-	fmt.Printf("\nWe have %d games\n", len(games_and_locations.Game))
+    fmt.Printf("\nWe have %d games\n", len(games_and_locations.Game))
 
-	for game_key, game_item := range games_and_locations.Game {
-	    fmt.Printf("  - game %s available at locations: %#v\n", game_key, game_item.Location)
-	}
+    for game_key, game_item := range games_and_locations.Game {
+        fmt.Printf("  - game %s available at locations: %#v\n", game_key, game_item.Location)
+    }
 
     // using a selector
-	fmt.Printf("\nThese game are available to start\n")
+    fmt.Printf("\nThese game are available to start\n")
 
-	for game_key, _ := range games_and_locations.Game {
+    for game_key, _ := range games_and_locations.Game {
         locationList := selectors.SelectLocationListForGame(games_and_locations, game_key)
         for _, loc_item := range locationList {
-	       fmt.Printf("  - game %s available at location: %s\n", game_key, loc_item.LocationKey)
-	    }
-	}
+           fmt.Printf("  - game %s available at location: %s\n", game_key, loc_item.LocationKey)
+        }
+    }
 
 }
 ```
