@@ -1,6 +1,6 @@
 # Gameye SDK Documentation
 
-## intro
+## Introduction
 
 Create eSport and competitive matches for for your platform 
 without fixed monthly costs or any need for your own server infrastructure for games like:
@@ -12,45 +12,40 @@ you will even be able to implement the scores/statistics directly on your websit
 
 How cool is that!
 
-# availabkle SDK options
-The Gameye SDK's are the recommended way to use out API's.
+# Available SDK options
+The Gameye SDK's are the recommended way to use our API.
 
-SDK are available in several popular languages:
-1. Typescript (node.js)
+Our SDK's are available in several popular languages:
+1. Node.js (Typescript)
 1. Golang
 1. PHP
-1. raw REST API (curl)
-1. request more languages ....
+1. Raw REST API (curl)
 
-In these pages we well show you how easy it is 
-to use the SDK's and tge raw REST API's.
+In these pages we well show you how easy it is to use the SDK's and the raw REST API.
 
-## Get started
+## Getting started
 
-### get an API KEY
+### Get an API KEY
 
-Obtain a free Gameye API key, please send us an [email](mailto:support@gameye.com)
+Obtain a free Gameye API key, please send us an [email](mailto:support@gameye.com).
 
-All API request need to be authorised using your `API_KEY` 
-as an (oauth) `Bearer` token
+All API request need to be authorised using your `API_KEY` as an (OAuth) `Bearer` token.
 
-### install the SDK
-Follow the in instructions for your language of choice
-bellow. In case of any trouble, check out out FAG or 
-or contact support, for assistance
+### Install the SDK
+Follow the instructions for your language of choice bellow. In case of any trouble contact our support department for assistance.
 
-#### install the SDK (node.js using npm)
+#### Install the SDK (Node.js using npm)
 
 ```bash
 $ npm install @gameye/sdk -s
 ```
 
-#### install the SDK (Golang)
+#### Install the SDK (Golang)
 ```goLang
 TODO ....
 ```
 
-#### install the SDK (PHP using composer)
+#### Install the SDK (PHP using composer)
 
 ```php
 $ composer require gameye/gameye-sdk-php
@@ -61,22 +56,22 @@ $ composer require gameye/gameye-sdk-php
 }
 ```
 
-# Create Gameye client
+# Create a Gameye client
 
-The SDK's provide a Gameye client class, you will need to instantiate it with your `GAMEYE_API_KEY` 
+The SDK's provide a Gameye client class, you will need to initiate it with your `GAMEYE_API_KEY` 
 and the API `endoint` you want to use. 
 
-In case of raw API use, you just addres the correct `endpoint` and add the `GAMEYE_API_KEY` in the
+In case of raw API use, use one of the available `endpoints` and add the `GAMEYE_API_KEY` in the
 authorization header.
 
-## Instantiate a Gameye Client (typescript)
+## Initiate a Gameye Client (Node.js)
 
 ```typescript
 import {
     GameQueryState,
     GameyeClient,
     GameyeClientConfig,
-    MatchQueryState, 
+    MatchQueryState,
     QuerySubscription,
     StatisticQueryState,
     TemplateQueryState
@@ -85,6 +80,25 @@ import {
 const api_config = <GameyeClientConfig>({endpoint:"https://api.gameye.com", token: "GAMEYE_API_KEY"});
 
 const gameye = new GameyeClient(api_config);
+```
+
+## Instantiate a Gameye Client (Go)
+
+make sure to import the neede package:
+
+```go
+
+import (
+	"github.com/Gameye/gameye-sdk-go/clients"
+)
+```
+Now you can instantiate `GameyeClientConfig` with your `Endpoint`  and api `Token`
+and use it to set create a `NewGameyeClient`
+
+```gotemplate
+api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "T2No0tYJ9vRFgcNaOdFI"}
+
+gameye := clients.NewGameyeClient(api_config)
 ```
 
 ## Instantiate a Gameye Client (PHP)
@@ -102,17 +116,17 @@ The Gameye SDK's (and API) are desigend using the
 [Command and Query Responsibility Segregation](http://codebetter.com/gregyoung/2010/02/16/cqrs-task-based-uis-event-sourcing-agh/)
 design pattern.
 
-We have disticts set or `queries` you can use the GET information from the API servers, 
-and we have an other set of `commands` you can user to change things. You will use the 
+We have disticts set or `queries` you can use the GET information from the API, 
+and we have an other set of `commands` you can use to change things. You can use the 
 `query` interface to get information about possible games and options and about statistics of
-a match in progress. However you will need to use the `command` interface for things like `
-`start`ing and `stop`ping a match etc.
+a match in progress. However you will need to use the `command` interface for things such as to
+`start` and `stop` a match etc.
 
 
 ## Get information about available games and locations
 
 A wide range of games and game opions are available, 
-you can `GET` an up to date list using the `game` `Query`.
+you can `GET` an live list using the `game` `Query`.
 
 The result will be a structure with a list of `game`s, a list of `location`s and 
 for each `game` a list of locations where the game is available.
@@ -171,7 +185,7 @@ curl https://api.gameye.com/fetch/game
 ```
 
 
-###  Query Game (typescript)
+###  Query Game (Node.js)
 
 In `node.js` (typescipt) the `query` interface returns a `promise`. 
 
@@ -219,9 +233,9 @@ async function get_games_and_locations(gameye: GameyeClient) {
 }
 ```
 
-### using the location selector
+### Location selector
 
-The gameye SDK provide you with some predefined selector functions that can make it easier
+The Gameye SDK provides you with predefined selector functions that can make it easier
 to traverse the data structure used in de API. Your code will be more robust against future
 changes in the API's datastructures, so we encourage you to use them.
 
@@ -256,7 +270,63 @@ async function get_games_and_locations(gameye: GameyeClient) {
 
 ###  Query Game (Golang)
 
-TODO
+
+In the following (complete) sample we show how to use the `QueryGame` method 
+in Go to retrieve all `Location`s and all `Game`s
+
+
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/Gameye/gameye-sdk-go/clients"
+	"github.com/Gameye/gameye-sdk-go/models"
+	"github.com/Gameye/gameye-sdk-go/selectors"
+)
+
+func main() {
+    // init the client
+	api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "T2No0tYJ9vRFgcNaOdFI"}
+	gameye := clients.NewGameyeClient(api_config)
+
+	fmt.Printf("fetch game info from Gameye client\n")
+
+    var err error
+    var games_and_locations *models.GameQueryState
+
+	games_and_locations, err = gameye.QueryGame()
+	if err != nil {
+	    fmt.Printf("\nSorry: queryGame call failed:  %s\n", err)
+	    return
+	}
+
+	fmt.Printf("\nWe have %d locations\n", len(games_and_locations.Location))
+
+	for i, loc_item := range games_and_locations.Location {
+	    fmt.Printf("  - location %s --> %#v\n", i, loc_item)
+	}
+
+	fmt.Printf("\nWe have %d games\n", len(games_and_locations.Game))
+
+	for game_key, game_item := range games_and_locations.Game {
+	    fmt.Printf("  - game %s available at locations: %#v\n", game_key, game_item.Location)
+	}
+
+    // using a selector
+	fmt.Printf("\nThese game are available to start\n")
+
+	for game_key, _ := range games_and_locations.Game {
+        locationList := selectors.SelectLocationListForGame(games_and_locations, game_key)
+        for _, loc_item := range locationList {
+	       fmt.Printf("  - game %s available at location: %s\n", game_key, loc_item.LocationKey)
+	    }
+	}
+
+}
+```
+
 
 ###  Query Game (PHP)
 
@@ -265,7 +335,7 @@ TODO
 ## Query Game templates and parameters
 
 For each game a variety of templates exists to start a match. The API allows you to get 
-an up to date list of known templates and the allowed argument (value)s.
+an up to date list of known templates and the allowed values.
 
  
 ### Template Sample Data (json)
@@ -358,7 +428,7 @@ curl \
 https://api.gameye.com/fetch/template?gameKey=VALID_GAME_KEY
 ```
 
-### Query Template (node, typescript)
+### Query Template (Node.js)
 
 ```typescript
 async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
@@ -382,7 +452,7 @@ async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 }
 ```
 
-### using template selectors
+###  Template selectors
 
 The gameye SDK provides two convient selectors for templates too, we encourage you to use them.
 
@@ -436,23 +506,22 @@ async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 
 ## Start a match
 
-At the command site of the API we have two command, one to `start` a match an one for `stop`ing the match.
+At the command site of the API we have two commands, one to `start` a match an one to `stop` a match.
 
 `Command`s will not give a result back (just a status code indicating success or error), 
 therefore you need to provide your own unique `matchKey` as a reference for the match.
 
-In the sample code we a timestamp with suffient large resolution as a match key, 
-but any unique (string) ID will do.
+In the sample code we a timestamp with sufficient large resolution as a match key, but any unique (string) ID will do.
 
 To `start` a match you need the following input:
 1. a `gameKey` to specify the game (e.g. "csgo")
-1. a list of `locationKeys` where you want your servers to be deployed
+1. a list of `locationKeys` where you want your match to be hosted
 1. a `templateKey` to select a known game template (see above)
-1. a unique `matchkey` for reference of the match
-1. optional a set of match `config`uration parameters (see above)
+1. a unique `matchkey` as a reference for the match
+1. optional a set of match configuuration parameters (see above)
 
 
-### start and stop a match (raw API)
+### Start and stop a match (raw API)
 
 In case of the raw API you simply POST all argumments 
 to the `/action/start-match` like this:
@@ -503,10 +572,9 @@ The result wil be a HTTP status code:
 - a `403` 'NOT ALLOWED' in case of an invalid `GAMEYE_API_KEY` 
 - a `404` 'NOT FOUND' in case of a non existing game (template)
 - a `500` in case of any mistakes in the posted payload
- 
- 
+  
 
-### start and stop a match (node, typescript)
+### Start and stop a match (Node.js)
 
 ```typescript
 async function start_stop_match(gameye: GameyeClient){
@@ -552,11 +620,9 @@ async function start_stop_match(gameye: GameyeClient){
 
 ## Listen to real time updates of a running match
 
-After you stared a match you can listen to updates from the live match using 
-a view simple `query` calls.
+After you stared a match you can listen to updates from the live match using a view simple `query` calls.
 
-If you have any matches in progress you can fetch the state using
-the  `match` `query`.
+If you have any matches in progress you can fetch the state using the  `match` `query`.
 
 ### Match data sample (json)
 
@@ -588,7 +654,7 @@ curl \
 https://api.gameye.com/fetch/match
 ```
 
-### Query match state (node.js, typescript)
+### Query match state (Node.js)
 
 ```typescript
 
@@ -605,7 +671,7 @@ async function request_match(gameye: GameyeClient, matchKey: string){
 }
 ```
 
-### using match selectors
+### Match selectors
 
 You are encouraged to use: 
 - `selectMatchList` to get a list of all active matches (may be empty list `[]`)
@@ -649,7 +715,7 @@ async function request_match(gameye: GameyeClient, gameKey: string, matchKey: st
 After you stared a match you can listen to updates to the match statistics
 similar as the match state itself.
 
-If you user one of our SDK's you can listen to updates of the 
+If you using one of our SDK's you can listen to updates of the 
 statistics in __real time__ using a `subscription`. This is the
 preferred and most convenient way to observe a match.
 
@@ -675,9 +741,9 @@ The `statistic` `query` / `subscribe` returns a json object with one attribute
 
 The `player` information (model) has the following attributes:
 1. `connected` (boolean): , the connected state of the player
-1. `playerKey` (string):   uniq key of a player
-1. `uid` (string):  user id of the player (??)
-1. `name` (string) nickname of the plauer "Xander",
+1. `playerKey` (string): unique key of a player
+1. `uid` (string): Steam id of the player
+1. `name` (string) nickname of the player "Xander",
 1. `statistic` (object): score statistics (numbers) of the player 
     indexed by `scoreKey` (e.g. `assist`, `death`, `kill`) actual statistic
     keys depend on game and gamemode
@@ -761,9 +827,9 @@ curl \
 https://api.gameye.com/fetch/statistic?matchKey=VALID_MATCH_KEY
 ```
 
-### Query statistic  (node.js, typescript)
+### Query statistic (Node.js)
 
-For a one time requetst for the match statistics we may use a `queryStatistic` call:
+For a one time request for the match statistics we can use a `queryStatistic` call:
 
 ```typescript
 async function get_match_stats(gameye: GameyeClient, matchKey: string){
@@ -794,11 +860,11 @@ import { PlayerItem, selectPlayerItem, selectPlayerList, selectPlayerListForTeam
 import { TeamItem, selectTeamItem, selectTeamList } from "@gameye/sdk";
 
 ```
-### Subscribe statistic  (node.js, typescript)
+### Subscribe statistic (Node.js)
 
 To observer the changes in the match statistics we can use `subscribeStatistic`
 this will result in events for each new match state. This is much more friendly than
-hard polling using barebones `queryStatistic` calls.
+hard polling using bare `queryStatistic` calls.
 
 ```typescript
 
@@ -863,7 +929,7 @@ async function observe_match(gameye: GameyeClient, matchKey: string){
 }
 ```
 
-### using team and player selectors
+### Team and player selectors
 
 we can rewrite this using the provided selectors:
 - use `selectTeamList` to get a list of `TeamItem`s
