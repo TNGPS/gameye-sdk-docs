@@ -40,10 +40,12 @@ Follow the instructions for your language of choice bellow. In case of any troub
 $ npm install @gameye/sdk -s
 ```
 
-#### Install the SDK (Golang)
-```goLang
-TODO ....
+#### Install the SDK (Go)
+
+```bash
+go get -u github.com/Gameye/gameye-sdk-go/clients
 ```
+
 
 #### Install the SDK (PHP using composer)
 
