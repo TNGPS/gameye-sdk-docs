@@ -507,6 +507,66 @@ async function get_templates_for_game(gameye: GameyeClient, gameKey: string) {
 }
 ```
 
+In the following sample we demonstrate how to extract a list of game `Template`s
+and use selectors to access the `Arg`s for a given `template`.
+
+### Query Template (Go)
+
+```Go
+package main
+
+import (
+    "fmt"
+    "github.com/Gameye/gameye-sdk-go/clients"
+    "github.com/Gameye/gameye-sdk-go/models"
+    "github.com/Gameye/gameye-sdk-go/selectors"
+)
+
+func main() {
+
+    api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "T2No0tYJ9vRFgcNaOdFI"}
+    gameye := clients.NewGameyeClient(api_config)
+
+    gameKey := "csgo"
+    fmt.Printf("fetch %s game templates from Gameye client\n", gameKey)
+
+    var err error
+    var available_templates *models.TemplateQueryState
+
+    available_templates, err = gameye.QueryTemplate(gameKey)
+    if err != nil {
+        fmt.Printf("\nSorry: queryTemplate call failed:  %s\n", err)
+        return
+    }
+
+    fmt.Printf("\nWe have %d templates available for game '%s'\n", len(available_templates.Template), gameKey)
+
+    for templ_key, templ_item := range available_templates.Template {
+        fmt.Printf("  - template '%s' with %d args\n", templ_key, len(templ_item.Arg))
+    }
+
+    // use a selector if you like a list better
+
+    templateList := selectors.SelectTemplateList(available_templates)
+
+    fmt.Printf("\nWe have %d templates available for game '%s'\n", len(templateList), gameKey)
+
+    for i, templ_item := range templateList {
+        fmt.Printf("  - template %d --> '%s' with %d args\n", i, templ_item.TemplateKey, len(templ_item.Arg))
+    }
+
+    // pick a specific template and show the args
+
+    templateKey := "bots"
+    template := selectors.SelectTemplateItem(available_templates, templateKey)
+
+    fmt.Printf("\nThese %d args are available for template '%s' and game '%s'\n", len(template.Arg), templateKey, gameKey)
+
+    for i, arg_item := range template.Arg {
+        fmt.Printf("  - arg %d  -->  %#v\n", i, arg_item)
+    }
+}
+```
 
 ## Start a match
 
