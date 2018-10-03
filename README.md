@@ -84,6 +84,26 @@ const api_config = <GameyeClientConfig>({endpoint:"https://api.gameye.com", toke
 const gameye = new GameyeClient(api_config);
 ```
 
+## Initiate a Gameye Client (Go)
+
+Make sure to import the needed package(s):
+
+```go
+
+import (
+	"github.com/Gameye/gameye-sdk-go/clients"
+)
+```
+Now you can instantiate `GameyeClientConfig` with your `Endpoint`  and api `Token`
+and use it to set create a `NewGameyeClient`
+
+```go
+api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "GAMEYE_API_KEY"}
+
+gameye := clients.NewGameyeClient(api_config)
+```
+
+
 ## Initiate a Gameye Client (PHP)
 
 ```PHP
