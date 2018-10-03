@@ -40,9 +40,10 @@ Follow the instructions for your language of choice bellow. In case of any troub
 $ npm install @gameye/sdk -s
 ```
 
-#### Install the SDK (Golang)
-```goLang
-TODO ....
+#### Install the SDK (Go)
+```bash
+go get -u github.com/Gameye/gameye-sdk-go/clients
+
 ```
 
 #### Install the SDK (PHP using composer)
@@ -95,7 +96,7 @@ import (
 Now you can instantiate `GameyeClientConfig` with your `Endpoint`  and api `Token`
 and use it to set create a `NewGameyeClient`
 
-```gotemplate
+```go
 api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "T2No0tYJ9vRFgcNaOdFI"}
 
 gameye := clients.NewGameyeClient(api_config)
