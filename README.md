@@ -737,6 +737,7 @@ async function request_match(gameye: GameyeClient, matchKey: string){
 
 ### Match selectors
 
+
 You are encouraged to use: 
 - `selectMatchList` to get a list of all active matches (may be empty list `[]`)
 - `selectMatchListForGame` to get a list of all active matches for a given `gameKey` (may be empty empty list `[]`)
@@ -775,7 +776,55 @@ async function request_match(gameye: GameyeClient, gameKey: string, matchKey: st
 
 
 ### Query match state  (Go)
+Using `QueryMatch` we get a `models.QueryMatchState` structure wih all
+active match data. You can use the following  `selectors` to extract information you need: 
+- `SelectMatchList` to get a list of all active matches (may be empty list `[]`)
+- `SelectMatchListForGame` to get a list of all active matches for a given `gameKey` (may be empty empty list `[]`)
+- `SelectMatchItem` to get the active match item for a given `matchKey` (may be empty `null`)
 
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/Gameye/gameye-sdk-go/clients"
+    "github.com/Gameye/gameye-sdk-go/models"
+    "github.com/Gameye/gameye-sdk-go/selectors"
+)
+
+func main() {
+
+    api_config := clients.GameyeClientConfig{Endpoint: "https://api.gameye.com", Token: "GAMEYE_API_KEY"}
+    gameye := clients.NewGameyeClient(api_config)
+
+    // check for active matches
+    var err error
+    var available_matches *models.MatchQueryState
+
+    available_matches, err = gameye.QueryMatch()
+    if err != nil {
+        fmt.Printf("\nSorry: queryMatch call failed:  %s\n", err)
+        return
+    }
+
+    // use selectors to access the results
+
+    matches := selectors.SelectMatchList(available_matches)
+	fmt.Printf("\n%#v\n", matches)
+
+    gameKey := "csgo"
+
+    matches_for_game := selectors.SelectMatchListForGame(available_matches, gameKey)
+	fmt.Printf("\n%#v\n", matches_for_game)
+
+    // if we have a matchKey you may want to use that
+    matchKey := "MY_MATCH_KEY"
+
+    my_match := selectors.SelectMatchItem(available_matches, matchKey)
+	fmt.Printf("\n%#v\n", my_match)
+}
+
+```
 
 
 ## Query  / Subscribe Statistics 
