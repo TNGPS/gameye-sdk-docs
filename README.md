@@ -1363,11 +1363,11 @@ func main() {
         return
     }
 
-    fmt.Printf("match has %d started rounds", match_state.Statistic.StartedRounds)
-    fmt.Printf("match was started at %d", match_state.Statistic.Start)
-    fmt.Printf("match was stopped at %d", match_state.Statistic.Stop)  // match_state.Statistic.Stop == 0 while it is running
-    fmt.Printf("match has %d started rounds", match_state.Statistic.StartedRounds)
-    fmt.Printf("match has %d finished rounds", match_state.Statistic.FinishedRounds)
+    fmt.Printf("\n\nmatch has %d started rounds\n", match_state.Statistic.StartedRounds)
+    fmt.Printf("match was started at %d\n", match_state.Statistic.Start)
+    fmt.Printf("match was stopped at %d\n", match_state.Statistic.Stop)  // match_state.Statistic.Stop == 0 while it is running
+    fmt.Printf("match has %d started rounds\n", match_state.Statistic.StartedRounds)
+    fmt.Printf("match has %d finished rounds\n", match_state.Statistic.FinishedRounds)
 
     // use selectors to extract information about the match state
     player_list := selectors.SelectPlayerList(match_state)
